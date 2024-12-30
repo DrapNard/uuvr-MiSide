@@ -13,5 +13,5 @@ jobs:
         uses: nebularg/actions-discord-webhook@v1
         with:
           webhook_url: ${{ secrets.DISCORDWEBHOOKLINK }} # Ensure this is a single string
-          status: ${{ job.status }} # Single value, default is fine
+          status: ${{ job.status }}
         if: always()
