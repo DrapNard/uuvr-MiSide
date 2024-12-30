@@ -17,17 +17,20 @@
         <Reference Include="..\lib\$(UnityBackend)\$(UnityGeneration)\*.dll">
             <Private>False</Private>
         </Reference>
-        <Content Include="Assets\**" >
+        <Content Include="Assets\**">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
-    
+
+	<ItemGroup>
+		<Reference Include="$(BepInExDir)\lib\$(UnityBackend)\$(UnityGeneration)\*.dll">
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	
     <PropertyGroup Condition=" '$(UnityBackend)' == 'il2cpp' ">
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
-    <ItemGroup Condition=" '$(UnityBackend)' == 'il2cpp' ">
-        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.692" />
-    </ItemGroup>
     
     <PropertyGroup Condition=" '$(Configuration)' == 'legacy-mono' ">
         <TargetFramework>net35</TargetFramework>

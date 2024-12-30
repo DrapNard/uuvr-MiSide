@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current"
   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <BepInExDir>C:\Users\rai\AppData\Roaming\raicuparta\rai-pal\data\mod-loaders\bepinex</BepInExDir>
-  </PropertyGroup>
 
+  <PropertyGroup>
+	 <RaiPalDir>%USERPROFILE%\AppData\Roaming\raicuparta\rai-pal\data</RaiPalDir>
+  </PropertyGroup>
+	
+  <PropertyGroup>
+	  <BepInExDir>$(RaiPalDir)\mod-loaders\bepinex</BepInExDir>
+  </PropertyGroup>
+	
   <!--  Il2Cpp  -->
   <PropertyGroup Condition=" '$(Configuration)' == 'legacy-il2cpp' Or '$(Configuration)' == 'modern-il2cpp' ">
     <UnityBackend>il2cpp</UnityBackend>
