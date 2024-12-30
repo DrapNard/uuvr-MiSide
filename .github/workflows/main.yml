@@ -11,8 +11,7 @@ jobs:
     steps:
       - name: Send status to Discord
         uses: nebularg/actions-discord-webhook@v1
-        env:
-          WEBHOOK_URL: ${{ secrets.DISCORDWEBHOOKLINK }}
         with:
+          webhook_url: https://discord.com/api/webhooks/13
           status: ${{ job.status }}
         if: always()
