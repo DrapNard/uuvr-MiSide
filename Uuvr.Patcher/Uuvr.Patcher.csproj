@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="CopyToGame\**" >
+        <Content Include="CopyToGame\**">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
         <Content Include="classdata.tpk">
@@ -31,9 +31,6 @@
     </ItemGroup>
 
     <!--  Il2Cpp  -->
-    <ItemGroup Condition=" '$(UnityBackend)' == 'il2cpp' ">
-        <PackageReference Include="BepInEx.Unity.Mono.Preloader" Version="6.0.0-be.674" IncludeAssets="compile"  />
-    </ItemGroup>
 
     <!--  Mono  -->
     <ItemGroup Condition=" '$(UnityBackend)' == 'mono' ">
