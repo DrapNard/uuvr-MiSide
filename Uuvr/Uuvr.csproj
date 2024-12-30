@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <Nullable>enable</Nullable>
         <Configurations>legacy-il2cpp;modern-il2cpp;legacy-mono;modern-mono</Configurations>
@@ -23,7 +23,13 @@
     </ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="$(BepInExDir)\lib\$(UnityBackend)\$(UnityGeneration)\*.dll">
+		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\unity-libs\*.dll">
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\core\*.dll">
 			<Private>False</Private>
 		</Reference>
 	</ItemGroup>

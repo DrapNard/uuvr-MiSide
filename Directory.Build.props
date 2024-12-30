@@ -9,6 +9,10 @@
   <PropertyGroup>
 	  <BepInExDir>$(RaiPalDir)\mod-loaders\bepinex</BepInExDir>
   </PropertyGroup>
+
+  <PropertyGroup>
+	  <GameID>7094394445867082910</GameID>
+  </PropertyGroup>
 	
   <!--  Il2Cpp  -->
   <PropertyGroup Condition=" '$(Configuration)' == 'legacy-il2cpp' Or '$(Configuration)' == 'modern-il2cpp' ">
