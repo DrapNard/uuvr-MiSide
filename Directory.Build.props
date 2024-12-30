@@ -3,40 +3,34 @@
   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-	 <RaiPalDir>%USERPROFILE%\AppData\Roaming\raicuparta\rai-pal\data</RaiPalDir>
+    <RaiPalDir>$(USERPROFILE)\AppData\Roaming\raicuparta\rai-pal\data</RaiPalDir>
   </PropertyGroup>
 	
   <PropertyGroup>
-	  <BepInExDir>$(RaiPalDir)\mod-loaders\bepinex</BepInExDir>
+    <BepInExDir>$(RaiPalDir)\mod-loaders\bepinex</BepInExDir>
   </PropertyGroup>
 
   <PropertyGroup>
-	  <GameID>7094394445867082910</GameID>
+    <GameID>7094394445867082910</GameID>
   </PropertyGroup>
 	
-  <!--  Il2Cpp  -->
+  <!-- Il2Cpp Configuration -->
   <PropertyGroup Condition=" '$(Configuration)' == 'legacy-il2cpp' Or '$(Configuration)' == 'modern-il2cpp' ">
     <UnityBackend>il2cpp</UnityBackend>
     <UnityBackendFolderName>Il2Cpp</UnityBackendFolderName>
     <DefineConstants>$(DefineConstants);CPP</DefineConstants>
   </PropertyGroup>
 
-  <!--  Mono  -->
-  <PropertyGroup Condition=" '$(Configuration)' == 'legacy-mono' Or '$(Configuration)' == 'modern-mono' ">
-    <UnityBackend>mono</UnityBackend>
-    <UnityBackendFolderName>Mono</UnityBackendFolderName>
-    <DefineConstants>$(DefineConstants);MONO</DefineConstants>
-  </PropertyGroup>
-
-  <!--  Legacy (Unity 2019 or earlier)  -->
-  <PropertyGroup Condition=" '$(Configuration)' == 'legacy-mono' Or '$(Configuration)' == 'legacy-il2cpp' ">
+  <!-- Legacy (Unity 2019 or earlier) -->
+  <PropertyGroup Condition=" '$(Configuration)' == 'legacy-il2cpp' ">
     <UnityGeneration>legacy</UnityGeneration>
     <DefineConstants>$(DefineConstants);LEGACY</DefineConstants>
   </PropertyGroup>
 
-  <!--  Modern (Unity 2020 or later)  -->
-  <PropertyGroup Condition=" '$(Configuration)' == 'modern-mono' Or '$(Configuration)' == 'modern-il2cpp' ">
+  <!-- Modern (Unity 2020 or later) -->
+  <PropertyGroup Condition=" '$(Configuration)' == 'modern-il2cpp' ">
     <UnityGeneration>modern</UnityGeneration>
     <DefineConstants>$(DefineConstants);MODERN</DefineConstants>
   </PropertyGroup>
+  
 </Project>

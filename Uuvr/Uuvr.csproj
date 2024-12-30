@@ -1,59 +1,57 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <Nullable>enable</Nullable>
-        <Configurations>legacy-il2cpp;modern-il2cpp;legacy-mono;modern-mono</Configurations>
-        <Platforms>AnyCPU</Platforms>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <LangVersion>10</LangVersion>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
-        <DebugType>none</DebugType>
-        <OutputPath>$(BepInExDir)\mods\$(UnityBackendFolderName)\uuvr-$(UnityBackend)-$(UnityGeneration)\plugins</OutputPath>
-    </PropertyGroup>
 
-    <ItemGroup>
-        <Reference Include="..\lib\$(UnityBackend)\$(UnityGeneration)\*.dll">
-            <Private>False</Private>
-        </Reference>
-        <Content Include="Assets\**">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
+	<PropertyGroup>
+		<Nullable>enable</Nullable>
+		<Configurations>legacy-il2cpp;modern-il2cpp</Configurations>
+		<Platforms>AnyCPU</Platforms>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<LangVersion>10</LangVersion>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+		<DebugType>none</DebugType>
+		<OutputPath>$(BepInExDir)\mods\$(UnityBackendFolderName)\uuvr-$(UnityBackend)-$(UnityGeneration)\plugins</OutputPath>
+	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- References to backend and game-specific libraries -->
+		<Reference Include="..\lib\$(UnityBackend)\$(UnityGeneration)\*.dll">
+			<Private>False</Private>
+		</Reference>
 		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\unity-libs\*.dll">
 			<Private>False</Private>
 		</Reference>
-	</ItemGroup>
-
-	<ItemGroup>
 		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\core\*.dll">
 			<Private>False</Private>
 		</Reference>
-	</ItemGroup>
-	
-    <PropertyGroup Condition=" '$(UnityBackend)' == 'il2cpp' ">
-        <TargetFramework>net6.0</TargetFramework>
-    </PropertyGroup>
-    
-    <PropertyGroup Condition=" '$(Configuration)' == 'legacy-mono' ">
-        <TargetFramework>net35</TargetFramework>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'modern-mono' ">
-        <TargetFramework>net48</TargetFramework>
-    </PropertyGroup>
-    <ItemGroup Condition=" '$(UnityBackend)' == 'mono' ">
-        <PackageReference Include="BepInEx.Core" Version="5.4.16" />
-    </ItemGroup>
-    
-    <ItemGroup Condition=" '$(Configuration)' == 'modern-mono' ">
-        <ProjectReference Include="..\Uuvr.XR.OpenVR\Uuvr.XR.OpenVR.csproj" />
-        <ProjectReference Include="..\Uuvr.XR.OpenXR\Uuvr.XR.OpenXR.csproj" />
-    </ItemGroup>
 
-    <ItemGroup Condition=" '$(Configuration)' == 'modern-il2cpp' ">
-        <ProjectReference Include="..\Uuvr.OpenVR\Uuvr.OpenVR.csproj" />
-    </ItemGroup>
+		<!-- Include all assets -->
+		<Content Include="Assets\**">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<!-- Target framework for Il2Cpp -->
+	<PropertyGroup Condition=" '$(UnityBackend)' == 'il2cpp' ">
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
+
+	<!-- Legacy Il2Cpp configuration -->
+	<PropertyGroup Condition=" '$(Configuration)' == 'legacy-il2cpp' ">
+		<UnityGeneration>legacy</UnityGeneration>
+		<DefineConstants>$(DefineConstants);LEGACY</DefineConstants>
+	</PropertyGroup>
+
+	<!-- Modern Il2Cpp configuration -->
+	<PropertyGroup Condition=" '$(Configuration)' == 'modern-il2cpp' ">
+		<UnityGeneration>modern</UnityGeneration>
+		<DefineConstants>$(DefineConstants);MODERN</DefineConstants>
+	</PropertyGroup>
+
+	<!-- Project references for modern Il2Cpp -->
+	<ItemGroup Condition=" '$(Configuration)' == 'modern-il2cpp' ">
+		<ProjectReference Include="..\Uuvr.OpenVR\Uuvr.OpenVR.csproj" />
+	</ItemGroup>
+
 </Project>
