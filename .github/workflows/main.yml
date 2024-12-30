@@ -1,6 +1,6 @@
-    - name: Send status to Discord
-      uses: nebularg/actions-discord-webhook@v1
-      with:
-        webhook_url: ${{ secrets.discord_webhook_url }} # required
-        status: ${{ job.status }} # optional, this is the default
-      if: always() # or failure() or success()
+- name: Send status to Discord
+  uses: nebularg/actions-discord-webhook@v1
+  with:
+    webhook_url: ${{ secrets.DISCORDWEBHOOKLINK }} # Ensure this is a single string
+    status: ${{ job.status }} # Single value, default is fine
+  if: always() # Ensure this is correctly set
