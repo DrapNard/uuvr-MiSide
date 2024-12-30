@@ -1,6 +1,17 @@
-- name: Send status to Discord
-  uses: nebularg/actions-discord-webhook@v1
-  with:
-    webhook_url: ${{ secrets.DISCORDWEBHOOKLINK }} # Ensure this is a single string
-    status: ${{ job.status }} # Single value, default is fine
-  if: always() # Ensure this is correctly set
+name: Example Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  send-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send status to Discord
+        uses: nebularg/actions-discord-webhook@v1
+        with:
+          webhook_url: ${{ secrets.DISCORDWEBHOOKLINK }} # Ensure this is a single string
+          status: ${{ job.status }} # Single value, default is fine
+        if: always()
