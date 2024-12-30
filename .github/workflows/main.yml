@@ -1,17 +1,15 @@
-name: Discord Webhook
+name: Github Actions
 
 on: [push]
 
 jobs:
-  report-status:
-
+  git:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Send Discord Message
-      uses: EhsanFox/djs-actions@0.1.0
+
+    - uses: actions/checkout@v2
+
+    - name: Run Discord Webhook
+      uses: johnnyhuy/actions-discord-git-webhook@main 
       with:
-          id: ${{ secrets.WEBHOOK_ID }}
-          token: ${{ secrets.WEBHOOK_TOKEN }}
-          username: Github Actions
-          avatar: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_SECRET }}
