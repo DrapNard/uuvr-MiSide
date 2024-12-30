@@ -1,118 +1,129 @@
-﻿#if CPP
-using System;
-#endif
-
+﻿using System;
 using BepInEx.Configuration;
 using UnityEngine;
-#if MODERN && MONO
-using UnityEngine.Rendering;
-#endif
 
-namespace Uuvr;
-
-public class UuvrBehaviour: MonoBehaviour
+namespace Uuvr
 {
-#if CPP
-    private Action? _onBeforeRenderAction;
-#endif
-
-#if CPP
-    public UuvrBehaviour(IntPtr pointer) : base(pointer)
+    public class UuvrBehaviour : MonoBehaviour
     {
-    }
-#endif
-    
-    public static T Create<T>(Transform parent) where T: UuvrBehaviour
-    {
-        return new GameObject(typeof(T).Name)
+        /// <summary>
+        /// Factory method to create an instance of the behavior and attach it to a new GameObject.
+        /// </summary>
+        /// <typeparam name="T">Type of the behavior to create.</typeparam>
+        /// <param name="parent">Parent transform to attach the new GameObject.</param>
+        /// <returns>An instance of the created behavior.</returns>
+        public static T Create<T>(Transform parent) where T : UuvrBehaviour
         {
-            transform =
+            return new GameObject(typeof(T).Name)
             {
-                parent = parent,
-                localPosition = Vector3.zero,
-                localRotation = Quaternion.identity
+                transform =
+                {
+                    parent = parent,
+                    localPosition = Vector3.zero,
+                    localRotation = Quaternion.identity
+                }
+            }.AddComponent<T>();
+        }
+
+        /// <summary>
+        /// Unity's Awake method. Can be overridden by derived classes.
+        /// </summary>
+        protected virtual void Awake()
+        {
+            // Custom initialization logic for derived classes
+            Debug.Log($"{GetType().Name}: Awake called.");
+        }
+
+        /// <summary>
+        /// Called when the component is enabled. Subscribes to events.
+        /// </summary>
+        protected virtual void OnEnable()
+        {
+            try
+            {
+                // Subscribe to the BeforeRender event
+                Application.onBeforeRender += OnBeforeRender;
             }
-        }.AddComponent<T>();
-    }
-    
-    protected virtual void Awake()
-    {
-#if CPP
-        _onBeforeRenderAction = OnBeforeRender;
-#endif
-    }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"Failed to register for BeforeRender: {exception.Message}");
+            }
 
-    protected virtual void OnEnable()
-    {
-#if CPP
-        try
-        {
-            Application.add_onBeforeRender(_onBeforeRenderAction);
+            // Subscribe to configuration changes
+            ModConfiguration.Instance.Config.SettingChanged += ConfigOnSettingChanged;
         }
-        catch (Exception exception)
+
+        /// <summary>
+        /// Called when the component is disabled. Unsubscribes from events.
+        /// </summary>
+        protected virtual void OnDisable()
         {
-            Debug.LogWarning($"Failed to listen to BeforeRender: {exception}");
+            try
+            {
+                // Unsubscribe from the BeforeRender event
+                Application.onBeforeRender -= OnBeforeRender;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"Failed to unregister from BeforeRender: {exception.Message}");
+            }
+
+            // Unsubscribe from configuration changes
+            ModConfiguration.Instance.Config.SettingChanged -= ConfigOnSettingChanged;
         }
-#else
-        // TODO: This doesn't exist for unity <2017
-        Application.onBeforeRender += OnBeforeRender;
-#endif
 
-#if MODERN && MONO
-        RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
-        RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
-#endif
-
-        ModConfiguration.Instance.Config.SettingChanged += ConfigOnSettingChanged;
-    }
-
-    protected virtual void OnDisable()
-    {
-#if CPP
-        try
+        /// <summary>
+        /// Event handler for configuration setting changes.
+        /// </summary>
+        /// <param name="sender">The sender object.</param>
+        /// <param name="e">Event arguments for the setting change.</param>
+        private void ConfigOnSettingChanged(object? sender, SettingChangedEventArgs e)
         {
-            Application.remove_onBeforeRender(_onBeforeRenderAction);
+            OnSettingChanged();
         }
-        catch (Exception exception)
+
+        /// <summary>
+        /// Handles logic to execute before the render event.
+        /// </summary>
+        protected virtual void OnBeforeRender()
         {
-            Debug.LogWarning($"Failed to unlisten from BeforeRender: {exception}");
+            // Example: Sync object transform with a camera's transform
+            if (Camera.main != null)
+            {
+                var mainCameraTransform = Camera.main.transform;
+                transform.position = mainCameraTransform.position;
+                transform.rotation = mainCameraTransform.rotation;
+
+                Debug.Log($"{GetType().Name}: OnBeforeRender - Updated object transform to sync with the main camera.");
+            }
+            else
+            {
+                Debug.LogWarning($"{GetType().Name}: OnBeforeRender - No main camera available.");
+            }
         }
-#else
-        // TODO: This might not exist?
-        Application.onBeforeRender -= OnBeforeRender;
-#endif
-        
-#if MODERN && MONO
-        // TODO: This might not exist? maybe ok for modern though.
-        RenderPipelineManager.beginFrameRendering -= OnBeginFrameRendering;
-        RenderPipelineManager.endFrameRendering -= OnEndFrameRendering;
-#endif
-        
-        ModConfiguration.Instance.Config.SettingChanged -= ConfigOnSettingChanged;
+
+        /// <summary>
+        /// Handles logic to execute when a configuration setting changes.
+        /// </summary>
+        protected virtual void OnSettingChanged()
+        {
+            // Dynamically update the scale based on a setting
+            var configEntry = ModConfiguration.Instance.Config.Bind<float>(
+                "Settings",
+                "ObjectScale",
+                1f,
+                "Scale of the object controlled by this component."
+            );
+
+            if (configEntry != null)
+            {
+                transform.localScale = Vector3.one * configEntry.Value;
+                Debug.Log($"{GetType().Name}: OnSettingChanged - Applied new scale based on setting: {configEntry.Value}");
+            }
+            else
+            {
+                Debug.LogWarning($"{GetType().Name}: OnSettingChanged - Config entry is null or missing.");
+            }
+        }
     }
-
-    private void ConfigOnSettingChanged(object? sender, SettingChangedEventArgs e)
-    {
-        OnSettingChanged();
-    }
-
-    protected virtual void OnBeforeRender() {}
-
-    protected virtual void OnSettingChanged() {}
-
-#if MODERN && MONO
-    private void OnBeginFrameRendering(ScriptableRenderContext arg1, Camera[] arg2)
-    {
-        OnBeginFrameRendering();
-    }
-
-    private void OnEndFrameRendering(ScriptableRenderContext arg1, Camera[] arg2)
-    {
-        OnEndFrameRendering();
-    }
-    
-    protected virtual void OnBeginFrameRendering() {}
-    
-    protected virtual void OnEndFrameRendering() {}
-#endif
 }

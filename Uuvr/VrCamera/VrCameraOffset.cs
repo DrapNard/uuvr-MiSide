@@ -1,54 +1,73 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Uuvr.VrCamera;
-
-// TODO: add manual offsets.
-public class VrCameraOffset: UuvrBehaviour
+namespace Uuvr.VrCamera
 {
-#if CPP
-    public VrCameraOffset(System.IntPtr pointer) : base(pointer)
+    /// <summary>
+    /// Handles VR camera offsets and alignment settings.
+    /// </summary>
+    public class VrCameraOffset : UuvrBehaviour
     {
-    }
-#endif
-
-    protected override void OnBeforeRender()
-    {
-        base.OnBeforeRender();
-        UpdateTransform();
-    }
-
-    protected override void OnSettingChanged()
-    {
-        base.OnSettingChanged();
-        var config = ModConfiguration.Instance;
-        
-        transform.localPosition = new Vector3(
-            config.CameraPositionOffsetX.Value,
-            config.CameraPositionOffsetY.Value,
-            config.CameraPositionOffsetZ.Value);
-    }
-
-    private void Update()
-    {
-        UpdateTransform();
-    }
-    
-    private void LateUpdate()
-    {
-        UpdateTransform();
-    }
-
-    private void UpdateTransform()
-    {
-        if (ModConfiguration.Instance.AlignCameraToHorizon.Value)
+        /// <summary>
+        /// Called before rendering the frame. Ensures the transform is updated.
+        /// </summary>
+        protected override void OnBeforeRender()
         {
-            var forward = Vector3.ProjectOnPlane(transform.parent.forward, Vector3.up);
-            transform.LookAt(transform.position + forward, Vector3.up);
+            base.OnBeforeRender();
+            UpdateTransform();
         }
-        else
+
+        /// <summary>
+        /// Called when a configuration setting changes. Updates the local position based on offsets from configuration.
+        /// </summary>
+        protected override void OnSettingChanged()
         {
-            transform.localRotation = Quaternion.identity;
+            base.OnSettingChanged();
+            var config = ModConfiguration.Instance;
+
+            // Update local position offsets based on configuration values
+            transform.localPosition = new Vector3(
+                config.CameraPositionOffsetX.Value,
+                config.CameraPositionOffsetY.Value,
+                config.CameraPositionOffsetZ.Value
+            );
+
+            Debug.Log($"VrCameraOffset: Updated local position to ({transform.localPosition.x}, {transform.localPosition.y}, {transform.localPosition.z}).");
+        }
+
+        /// <summary>
+        /// Unity's Update method. Ensures the transform is updated every frame.
+        /// </summary>
+        private void Update()
+        {
+            UpdateTransform();
+        }
+
+        /// <summary>
+        /// Unity's LateUpdate method. Ensures the transform is updated after other updates.
+        /// </summary>
+        private void LateUpdate()
+        {
+            UpdateTransform();
+        }
+
+        /// <summary>
+        /// Updates the transform's rotation or alignment based on configuration settings.
+        /// </summary>
+        private void UpdateTransform()
+        {
+            if (ModConfiguration.Instance.AlignCameraToHorizon.Value)
+            {
+                // Align the forward direction of the camera to the horizon (no pitch/roll, only yaw)
+                var forward = Vector3.ProjectOnPlane(transform.parent.forward, Vector3.up);
+                transform.LookAt(transform.position + forward, Vector3.up);
+                Debug.Log("VrCameraOffset: Camera aligned to horizon.");
+            }
+            else
+            {
+                // Reset rotation to default (identity)
+                transform.localRotation = Quaternion.identity;
+                Debug.Log("VrCameraOffset: Camera rotation reset to identity.");
+            }
         }
     }
 }

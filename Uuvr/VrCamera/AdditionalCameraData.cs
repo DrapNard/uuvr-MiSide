@@ -1,75 +1,99 @@
-﻿#if MODERN && MONO
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace Uuvr.VrCamera;
-
-// Helper behaviour for handling URP's Additional Camera Data without needing an actual dependency.
-// Not using this for HDRP for now, since it isn't much help.
-// HDRP does't seem to support camera stacks, and that's the main thing I'm using this for.
-public class AdditionalCameraData: MonoBehaviour
+namespace Uuvr.VrCamera
 {
-#if CPP
-    public AdditionalCameraData(System.IntPtr pointer) : base(pointer)
+    /// <summary>
+    /// Helper behavior for handling URP's Additional Camera Data without requiring a hard dependency.
+    /// </summary>
+    public class AdditionalCameraData : MonoBehaviour
     {
-    }
-#endif
+        private const int RenderTypeBase = 0;
+        private const int RenderTypeOverlay = 1;
 
-    private const int RenderTypeBase = 0;
-    private const int RenderTypeOverlay = 1;
+        private static Type? _additionalCameraDataType;
+        private static PropertyInfo? _renderTypeProperty;
+        private static PropertyInfo? _cameraStackProperty;
+        private static PropertyInfo? _allowXrRenderingProperty;
 
-    private static Type? _additionalCameraDataType;
-    private static PropertyInfo? _renderTypeProperty;
-    private static PropertyInfo? _cameraStackProperty;
-    private static PropertyInfo? _allowXrRenderingProperty;
+        private object? _additionalCameraData;
 
-    private object? _additionalCameraData;
-
-    public static AdditionalCameraData Create(Camera camera)
-    {
-        if (_additionalCameraDataType == null)
+        /// <summary>
+        /// Initializes the AdditionalCameraData for a camera.
+        /// </summary>
+        /// <param name="camera">The camera to associate with AdditionalCameraData.</param>
+        /// <returns>The AdditionalCameraData instance, or null if initialization failed.</returns>
+        public static AdditionalCameraData? Create(Camera camera)
         {
-            _additionalCameraDataType = Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
-            _renderTypeProperty = _additionalCameraDataType?.GetProperty("renderType");
-            _cameraStackProperty = _additionalCameraDataType?.GetProperty("cameraStack");
-            _allowXrRenderingProperty = _additionalCameraDataType?.GetProperty("allowXRRendering");
+            // Lazy initialization of the AdditionalCameraData type and associated properties
+            if (_additionalCameraDataType == null)
+            {
+                _additionalCameraDataType = Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
+                _renderTypeProperty = _additionalCameraDataType?.GetProperty("renderType");
+                _cameraStackProperty = _additionalCameraDataType?.GetProperty("cameraStack");
+                _allowXrRenderingProperty = _additionalCameraDataType?.GetProperty("allowXRRendering");
+            }
+
+            if (_additionalCameraDataType == null) return null;
+
+            // Attach or retrieve the AdditionalCameraData component
+            return camera.gameObject.GetComponent<AdditionalCameraData>() ?? camera.gameObject.AddComponent<AdditionalCameraData>();
         }
 
-        if (_additionalCameraDataType == null) return null;
+        /// <summary>
+        /// Unity's Awake method. Initializes the Additional Camera Data instance.
+        /// </summary>
+        private void Awake()
+        {
+            if (_additionalCameraDataType == null) return;
 
-        return camera.gameObject.GetComponent<AdditionalCameraData>() ?? camera.gameObject.AddComponent<AdditionalCameraData>();
-    }
-    
-    private void Awake()
-    {
-        _additionalCameraData = gameObject.GetComponent(_additionalCameraDataType) ?? gameObject.AddComponent(_additionalCameraDataType);
-    }
+            // Attach or create the additional camera data component dynamically
+            _additionalCameraData = gameObject.GetComponent(_additionalCameraDataType) ?? gameObject.AddComponent(_additionalCameraDataType);
+        }
 
-    public void SetRenderTypeBase()
-    {
-        _renderTypeProperty?.SetValue(_additionalCameraData, RenderTypeBase);
-    }
+        /// <summary>
+        /// Sets the render type to "Base".
+        /// </summary>
+        public void SetRenderTypeBase()
+        {
+            _renderTypeProperty?.SetValue(_additionalCameraData, RenderTypeBase);
+        }
 
-    public void SetRenderTypeOverlay()
-    {
-        _renderTypeProperty?.SetValue(_additionalCameraData, RenderTypeOverlay);
-    }
+        /// <summary>
+        /// Sets the render type to "Overlay".
+        /// </summary>
+        public void SetRenderTypeOverlay()
+        {
+            _renderTypeProperty?.SetValue(_additionalCameraData, RenderTypeOverlay);
+        }
 
-    public bool IsOverlay()
-    {
-        return (int) _renderTypeProperty.GetValue(_additionalCameraData) == RenderTypeOverlay;
-    }
+        /// <summary>
+        /// Checks if the render type is set to "Overlay".
+        /// </summary>
+        /// <returns>True if the render type is "Overlay", otherwise false.</returns>
+        public bool IsOverlay()
+        {
+            return _renderTypeProperty != null && (int)_renderTypeProperty.GetValue(_additionalCameraData) == RenderTypeOverlay;
+        }
 
-    public List<Camera> GetCameraStack()
-    {
-        return (List<Camera>) _cameraStackProperty.GetValue(_additionalCameraData);
-    }
+        /// <summary>
+        /// Gets the camera stack associated with the Additional Camera Data.
+        /// </summary>
+        /// <returns>The list of cameras in the stack.</returns>
+        public List<Camera>? GetCameraStack()
+        {
+            return _cameraStackProperty?.GetValue(_additionalCameraData) as List<Camera>;
+        }
 
-    public void SetAllowXrRendering(bool allowXrRendering)
-    {
-        _allowXrRenderingProperty.SetValue(_additionalCameraData, allowXrRendering);    
+        /// <summary>
+        /// Enables or disables XR rendering for the camera.
+        /// </summary>
+        /// <param name="allowXrRendering">True to allow XR rendering, false to disable.</param>
+        public void SetAllowXrRendering(bool allowXrRendering)
+        {
+            _allowXrRenderingProperty?.SetValue(_additionalCameraData, allowXrRendering);
+        }
     }
 }
-#endif

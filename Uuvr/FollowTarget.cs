@@ -1,24 +1,26 @@
 ﻿using UnityEngine;
 
-namespace Uuvr;
-
-public class FollowTarget: UuvrBehaviour
+namespace Uuvr
 {
-#if CPP
-    public FollowTarget(System.IntPtr pointer) : base(pointer)
+    public class FollowTarget : UuvrBehaviour
     {
-    }
-#endif
+        public Transform? Target; // The transform to follow
+        public Vector3 LocalPosition = Vector3.zero; // Local position offset
+        public Quaternion LocalRotation = Quaternion.identity; // Local rotation offset
 
-    public Transform? Target;
-    public Vector3 LocalPosition = Vector3.zero;
-    public Quaternion LocalRotation = Quaternion.identity;
+        /// <summary>
+        /// Updates the position and rotation of the object to follow the target.
+        /// </summary>
+        protected override void OnBeforeRender()
+        {
+            base.OnBeforeRender();
 
-    protected override void OnBeforeRender()
-    {
-        if (Target == null) return;
+            // Ensure the target is valid
+            if (Target == null) return;
 
-        transform.position = Target.TransformPoint(LocalPosition);
-        transform.rotation = Target.rotation * LocalRotation;
+            // Update position and rotation based on the target's transform
+            transform.position = Target.TransformPoint(LocalPosition);
+            transform.rotation = Target.rotation * LocalRotation;
+        }
     }
 }
