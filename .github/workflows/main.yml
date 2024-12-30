@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Send Discord Message
-      uses: ehsanfox/discord.js-webhook@0.1.0
+      uses: EhsanFox/djs-actions@0.1.0
       with:
           id: ${{ secrets.WEBHOOK_ID }}
           token: ${{ secrets.WEBHOOK_TOKEN }}
