@@ -1,17 +1,15 @@
-name: Example Workflow
+name: Github Actions
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
-  send-status:
+  git:
     runs-on: ubuntu-latest
     steps:
-      - name: Send status to Discord
-        uses: nebularg/actions-discord-webhook@v1
-        with:
+
+    - uses: actions/checkout@v2
+
+    - name: Run Discord Webhook
+      uses: johnnyhuy/actions-discord-git-webhook@main 
+      with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_SECRET }}
-          status: ${{ job.status }}
-        if: always()
