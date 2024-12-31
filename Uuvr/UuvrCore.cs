@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Il2CppInterop.Runtime.Injection;
+using System;
 using System.Reflection;
 using UnityEngine;
 using Uuvr.VrCamera;
 using Uuvr.VrTogglers;
-using Uuvr.VrUi;
 
 namespace Uuvr
 {
-    public class UuvrCore
+    public class UuvrCore : MonoBehaviour
     {
         private readonly KeyboardKey _toggleVrKey = new(KeyboardKey.KeyCode.F3);
         private float _originalFixedDeltaTime;
@@ -16,11 +16,17 @@ namespace Uuvr
 
         public static void Create()
         {
-            var coreGameObject = new GameObject(nameof(UuvrCoreWrapper));
-            UnityEngine.Object.DontDestroyOnLoad(coreGameObject); // Correct usage of DontDestroyOnLoad
-            //new GameObject("UUVR").AddComponent<UuvrCore>();
-            coreGameObject.AddComponent<UuvrCoreWrapper>();
+            var coreGameObject = new GameObject("UUVR");
+            ClassInjector.RegisterTypeInIl2Cpp<UuvrCore>(); // Ensure type is registered
+            coreGameObject.AddComponent<UuvrCore>();
+            UnityEngine.Object.DontDestroyOnLoad(coreGameObject);
             //Debug.Log("UuvrCore instance created.");
+        }
+
+        private void Awake()
+        {
+            DontDestroyOnLoad(gameObject);
+            gameObject.AddComponent<VrCameraManager>();
         }
 
         public void Start()
@@ -34,11 +40,11 @@ namespace Uuvr
 
                 // Initialize VR toggler manager
                 _vrTogglerManager = new VrTogglerManager();
-                //Debug.Log("UuvrCore started successfully.");
+                Debug.Log("UuvrCore started successfully.");
             }
             catch (Exception ex)
             {
-                //Debug.LogError($"Error during UuvrCore.Start(): {ex.Message}");
+                Debug.LogError($"Error during UuvrCore.Start(): {ex.Message}");
             }
         }
 
@@ -101,60 +107,6 @@ namespace Uuvr
             catch (Exception ex)
             {
                 //Debug.LogError($"Error during UpdatePhysicsRate(): {ex.Message}");
-            }
-        }
-    }
-
-    public class UuvrCoreWrapper : MonoBehaviour
-    {
-        private UuvrCore _core;
-
-        private void Awake()
-        {
-            try
-            {
-                _core = new UuvrCore();
-                //Debug.Log("UuvrCoreWrapper initialized.");
-            }
-            catch (Exception ex)
-            {
-                //Debug.LogError($"Error during UuvrCoreWrapper.Awake(): {ex.Message}");
-            }
-        }
-
-        private void Start()
-        {
-            try
-            {
-                _core.Start();
-            }
-            catch (Exception ex)
-            {
-                //Debug.LogError($"Error during UuvrCoreWrapper.Start(): {ex.Message}");
-            }
-        }
-
-        private void Update()
-        {
-            try
-            {
-                _core.Update();
-            }
-            catch (Exception ex)
-            {
-                //Debug.LogError($"Error during UuvrCoreWrapper.Update(): {ex.Message}");
-            }
-        }
-
-        private void OnDestroy()
-        {
-            try
-            {
-                _core.OnDestroy();
-            }
-            catch (Exception ex)
-            {
-                //Debug.LogError($"Error during UuvrCoreWrapper.OnDestroy(): {ex.Message}");
             }
         }
     }

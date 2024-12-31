@@ -29,14 +29,8 @@ namespace Uuvr
 
             new ModConfiguration(Config);
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            //RegisterIl2CppTypes();
-            UuvrCore.Create();
-        }
-
-        private void RegisterIl2CppTypes()
-        {
             Assembly openVrAssembly = Assembly.Load("Uuvr.OpenVR");
-            //RegisterMonoBehaviourType<OpenVrManager>();
+            ClassInjector.RegisterTypeInIl2Cpp<OpenVrManager>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCamera.VrCamera>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCamera.VrCamera>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCameraOffset>();
@@ -48,18 +42,11 @@ namespace Uuvr
             ClassInjector.RegisterTypeInIl2Cpp<UuvrInput>();
             ClassInjector.RegisterTypeInIl2Cpp<UuvrPoseDriver>();
             ClassInjector.RegisterTypeInIl2Cpp<UuvrBehaviour>();
-            ClassInjector.RegisterTypeInIl2Cpp<UuvrCoreWrapper>();
-            ClassInjector.RegisterTypeInIl2Cpp<UuvrCore>();
             ClassInjector.RegisterTypeInIl2Cpp<AdditionalCameraData>();
             ClassInjector.RegisterTypeInIl2Cpp<ScreenMirrorPatchMode>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCameraManager>();
             ClassInjector.RegisterTypeInIl2Cpp<CanvasRedirectPatchMode>();
-        }
-
-        private void RegisterMonoBehaviourType<T>() where T : MonoBehaviour
-        {
-                ClassInjector.RegisterTypeInIl2Cpp<T>();
-            
+            UuvrCore.Create();
         }
     }
 }

@@ -1,28 +1,30 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Uuvr.VrCamera
 {
     public class VrCameraManager : MonoBehaviour
     {
-        private Camera[] _allCameras;
-
         private void Update()
         {
-            if (_allCameras == null || _allCameras.Length < Camera.allCamerasCount)
+            try
             {
-                _allCameras = new Camera[Camera.allCamerasCount];
+                // Use FindObjectsOfType to get all active cameras
+                var allCameras = Object.FindObjectsOfType<Camera>();
+
+                // Iterate through the cameras and process them
+                foreach (var camera in allCameras)
+                {
+                    if (camera == null || camera.targetTexture != null || camera.stereoTargetEye == StereoTargetEyeMask.None) continue;
+                    if (VrCamera.VrCameras.Contains(camera) || VrCamera.IgnoredCameras.Contains(camera)) continue;
+
+                    // Add VrCamera component to unprocessed cameras
+                    Debug.Log($"Creating VR camera: {camera.name}");
+                    camera.gameObject.AddComponent<VrCamera>();
+                }
             }
-            Camera.GetAllCameras(_allCameras);
-
-            for (var index = 0; index < Camera.allCamerasCount; index++)
+            catch (System.Exception ex)
             {
-                var camera = _allCameras[index];
-                if (camera == null || camera.targetTexture != null || camera.stereoTargetEye == StereoTargetEyeMask.None) continue;
-                if (VrCamera.VrCameras.Contains(camera) || VrCamera.IgnoredCameras.Contains(camera)) continue;
-
-                Debug.Log($"Creating VR camera {camera.name}");
-                camera.gameObject.AddComponent<VrCamera>();
+                Debug.LogError($"Error in VrCameraManager.Update: {ex.Message}");
             }
         }
     }
