@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using UnityEngine;
+using Uuvr.VrCamera;
 using Uuvr.VrTogglers;
+using Uuvr.VrUi;
 
 namespace Uuvr
 {
@@ -14,57 +16,91 @@ namespace Uuvr
 
         public static void Create()
         {
-            new GameObject(nameof(UuvrCore)).AddComponent<UuvrCoreWrapper>();
+            var coreGameObject = new GameObject(nameof(UuvrCoreWrapper));
+            UnityEngine.Object.DontDestroyOnLoad(coreGameObject); // Correct usage of DontDestroyOnLoad
+            //new GameObject("UUVR").AddComponent<UuvrCore>();
+            coreGameObject.AddComponent<UuvrCoreWrapper>();
+            //Debug.Log("UuvrCore instance created.");
         }
 
         public void Start()
         {
-            // Resolve XR refresh rate property
-            var xrDeviceType = Type.GetType("UnityEngine.XR.XRDevice, UnityEngine.XRModule") ??
-                               Type.GetType("UnityEngine.XR.XRDevice, UnityEngine.VRModule");
-            _refreshRateProperty = xrDeviceType?.GetProperty("refreshRate");
+            try
+            {
+                // Resolve XR refresh rate property
+                var xrDeviceType = Type.GetType("UnityEngine.XR.XRDevice, UnityEngine.XRModule") ??
+                                   Type.GetType("UnityEngine.XR.XRDevice, UnityEngine.VRModule");
+                _refreshRateProperty = xrDeviceType?.GetProperty("refreshRate");
 
-            // Initialize VR toggler manager
-            _vrTogglerManager = new VrTogglerManager();
+                // Initialize VR toggler manager
+                _vrTogglerManager = new VrTogglerManager();
+                //Debug.Log("UuvrCore started successfully.");
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCore.Start(): {ex.Message}");
+            }
         }
 
         public void Update()
         {
-            // Toggle VR when the key is pressed
-            if (_toggleVrKey.UpdateIsDown())
+            try
             {
-                _vrTogglerManager?.ToggleVr();
-            }
+                // Toggle VR when the key is pressed
+                if (_toggleVrKey.UpdateIsDown())
+                {
+                    _vrTogglerManager?.ToggleVr();
+                    //Debug.Log("Toggled VR mode.");
+                }
 
-            // Update the physics rate based on the headset refresh rate
-            UpdatePhysicsRate();
+                // Update the physics rate based on the headset refresh rate
+                UpdatePhysicsRate();
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCore.Update(): {ex.Message}");
+            }
         }
 
         public void OnDestroy()
         {
-            Debug.Log("UUVR has been destroyed. Recreating...");
-            Create();
+            try
+            {
+                //Debug.Log("UUVR instance destroyed. Recreating...");
+                Create();
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCore.OnDestroy(): {ex.Message}");
+            }
         }
 
         private void UpdatePhysicsRate()
         {
-            if (_originalFixedDeltaTime == 0)
+            try
             {
-                _originalFixedDeltaTime = Time.fixedDeltaTime;
+                if (_originalFixedDeltaTime == 0)
+                {
+                    _originalFixedDeltaTime = Time.fixedDeltaTime;
+                }
+
+                if (_refreshRateProperty == null) return;
+
+                var headsetRefreshRate = (float)_refreshRateProperty.GetValue(null, null);
+                if (headsetRefreshRate <= 0) return;
+
+                if (ModConfiguration.Instance.PhysicsMatchHeadsetRefreshRate.Value)
+                {
+                    Time.fixedDeltaTime = 1f / headsetRefreshRate;
+                }
+                else
+                {
+                    Time.fixedDeltaTime = _originalFixedDeltaTime;
+                }
             }
-
-            if (_refreshRateProperty == null) return;
-
-            var headsetRefreshRate = (float)_refreshRateProperty.GetValue(null, null);
-            if (headsetRefreshRate <= 0) return;
-
-            if (ModConfiguration.Instance.PhysicsMatchHeadsetRefreshRate.Value)
+            catch (Exception ex)
             {
-                Time.fixedDeltaTime = 1f / headsetRefreshRate;
-            }
-            else
-            {
-                Time.fixedDeltaTime = _originalFixedDeltaTime;
+                //Debug.LogError($"Error during UpdatePhysicsRate(): {ex.Message}");
             }
         }
     }
@@ -75,22 +111,51 @@ namespace Uuvr
 
         private void Awake()
         {
-            _core = new UuvrCore();
+            try
+            {
+                _core = new UuvrCore();
+                //Debug.Log("UuvrCoreWrapper initialized.");
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCoreWrapper.Awake(): {ex.Message}");
+            }
         }
 
         private void Start()
         {
-            _core.Start();
+            try
+            {
+                _core.Start();
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCoreWrapper.Start(): {ex.Message}");
+            }
         }
 
         private void Update()
         {
-            _core.Update();
+            try
+            {
+                _core.Update();
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCoreWrapper.Update(): {ex.Message}");
+            }
         }
 
         private void OnDestroy()
         {
-            _core.OnDestroy();
+            try
+            {
+                _core.OnDestroy();
+            }
+            catch (Exception ex)
+            {
+                //Debug.LogError($"Error during UuvrCoreWrapper.OnDestroy(): {ex.Message}");
+            }
         }
     }
 }

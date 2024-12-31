@@ -1,86 +1,118 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Uuvr.VrUi.PatchModes;
-
-public class CanvasRedirect: UuvrBehaviour
+namespace Uuvr.VrUi.PatchModes
 {
-#if CPP
-    public CanvasRedirect(System.IntPtr pointer) : base(pointer)
+    /// <summary>
+    /// Redirects the rendering of a canvas to a specified capture camera for VR compatibility.
+    /// </summary>
+    public class CanvasRedirect : UuvrBehaviour
     {
-    }
-#endif
+        private Canvas _canvas;
+        private Camera _uiCaptureCamera;
+        private bool _isPatched;
+        private RenderMode _originalRenderMode;
+        private Camera _originalWorldCamera;
+        private float _originalPlaneDistance;
+        private int _originalLayer;
 
-    private Canvas _canvas;
-    private Camera _uiCaptureCamera;
-    private bool _isPatched;
-    private RenderMode _originalRenderMode;
-    private Camera _originalWorldCamera;
-    private float _originalPlaneDistance;
-    private int _originalLayer;
-
-    public static void Create(Canvas _canvas, Camera uiCaptureCamera)
-    {
-        var instance = _canvas.gameObject.AddComponent<CanvasRedirect>();
-        instance._canvas = _canvas;
-        instance._uiCaptureCamera = uiCaptureCamera;
-    }
-
-    private void Start()
-    {
-        OnSettingChanged();
-    }
-
-    protected override void OnSettingChanged()
-    {
-        var shouldPatch = ShouldPatchCanvas();
-        
-        if (shouldPatch && !_isPatched)
+        /// <summary>
+        /// Creates a new CanvasRedirect instance and attaches it to the specified canvas.
+        /// </summary>
+        /// <param name="canvas">The canvas to redirect.</param>
+        /// <param name="uiCaptureCamera">The capture camera for redirected rendering.</param>
+        public static void Create(Canvas canvas, Camera uiCaptureCamera)
         {
-            Patch();
-        }
-        else if (!shouldPatch && _isPatched)
-        {
-            UndoPatch();
-        }
-    }
-
-    private bool ShouldPatchCanvas()
-    {
-        if (ModConfiguration.Instance.PreferredUiPatchMode.Value != ModConfiguration.UiPatchMode.CanvasRedirect)
-        {
-            return false;
+            var instance = canvas.gameObject.AddComponent<CanvasRedirect>();
+            instance._canvas = canvas;
+            instance._uiCaptureCamera = uiCaptureCamera;
         }
 
-        var isScreenSpace = _originalRenderMode == RenderMode.ScreenSpaceCamera;
-
-        return ModConfiguration.Instance.ScreenSpaceCanvasTypesToPatch.Value switch
+        /// <summary>
+        /// Unity's Start method. Applies initial settings.
+        /// </summary>
+        private void Start()
         {
-            ModConfiguration.ScreenSpaceCanvasType.None => !isScreenSpace,
-            ModConfiguration.ScreenSpaceCanvasType.NotToTexture => !isScreenSpace || isScreenSpace && _canvas.worldCamera?.targetTexture == null,
-            ModConfiguration.ScreenSpaceCanvasType.All => true,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
+            OnSettingChanged();
+        }
 
-    private void Patch()
-    {
-        LayerHelper.SetLayerRecursive(transform, LayerHelper.GetVrUiLayer());
-        
-        _originalRenderMode = _canvas.renderMode;
-        _originalWorldCamera = _canvas.worldCamera;
-        _originalPlaneDistance = _canvas.planeDistance;
-        _originalLayer = _canvas.gameObject.layer;
-        
-        _canvas.renderMode = RenderMode.ScreenSpaceCamera;
-        _canvas.worldCamera = _uiCaptureCamera;
-
-        if (_originalRenderMode == RenderMode.ScreenSpaceCamera)
+        /// <summary>
+        /// Called when a configuration setting changes. Determines whether to patch or undo the patch.
+        /// </summary>
+        protected override void OnSettingChanged()
         {
-            // If the canvas was rendering to another camera,
-            // the original plane distance might not fit inside our UI camera frustum.
-            // I'd rather not change the plane distance since it might be important for sorting.
-            // So I'll change our UI camera near/far to make sure it can see all these canvases.
+            var shouldPatch = ShouldPatchCanvas();
+
+            if (shouldPatch && !_isPatched)
+            {
+                Patch();
+            }
+            else if (!shouldPatch && _isPatched)
+            {
+                UndoPatch();
+            }
+        }
+
+        /// <summary>
+        /// Determines whether the canvas should be patched based on the configuration and current state.
+        /// </summary>
+        /// <returns>True if the canvas should be patched, false otherwise.</returns>
+        private bool ShouldPatchCanvas()
+        {
+            if (ModConfiguration.Instance.PreferredUiPatchMode.Value != ModConfiguration.UiPatchMode.CanvasRedirect)
+            {
+                return false;
+            }
+
+            var isScreenSpace = _canvas.renderMode == RenderMode.ScreenSpaceCamera;
+
+            return ModConfiguration.Instance.ScreenSpaceCanvasTypesToPatch.Value switch
+            {
+                ModConfiguration.ScreenSpaceCanvasType.None => !isScreenSpace,
+                ModConfiguration.ScreenSpaceCanvasType.NotToTexture => !isScreenSpace ||
+                                                                       (isScreenSpace && _canvas.worldCamera?.targetTexture == null),
+                ModConfiguration.ScreenSpaceCanvasType.All => true,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+        /// <summary>
+        /// Applies the patch to redirect the canvas to the capture camera.
+        /// </summary>
+        private void Patch()
+        {
+            // Store original settings
+            _originalRenderMode = _canvas.renderMode;
+            _originalWorldCamera = _canvas.worldCamera;
+            _originalPlaneDistance = _canvas.planeDistance;
+            _originalLayer = _canvas.gameObject.layer;
+
+            // Update layer recursively
+            LayerHelper.SetLayerRecursive(transform, LayerHelper.GetVrUiLayer());
+
+            // Update canvas render mode and camera
+            _canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            _canvas.worldCamera = _uiCaptureCamera;
+
+            if (_originalRenderMode == RenderMode.ScreenSpaceCamera)
+            {
+                AdjustCameraClippingPlanes();
+            }
+            else
+            {
+                _canvas.planeDistance = 1f;
+            }
+
+            _isPatched = true;
+
+            Debug.Log($"CanvasRedirect: Patched canvas '{_canvas.name}' for VR rendering.");
+        }
+
+        /// <summary>
+        /// Adjusts the clipping planes of the capture camera to ensure proper rendering.
+        /// </summary>
+        private void AdjustCameraClippingPlanes()
+        {
             if (_originalPlaneDistance < _uiCaptureCamera.nearClipPlane)
             {
                 _uiCaptureCamera.nearClipPlane = Mathf.Max(0.01f, _originalPlaneDistance - 0.1f);
@@ -90,28 +122,23 @@ public class CanvasRedirect: UuvrBehaviour
                 _uiCaptureCamera.farClipPlane = _originalPlaneDistance + 0.1f;
             }
         }
-        else
+
+        /// <summary>
+        /// Restores the canvas to its original state, undoing the patch.
+        /// </summary>
+        private void UndoPatch()
         {
-            // Doesn't really make sense to enter this,
-            // but if we do, change the distance to something.
-            _canvas.planeDistance = 1f;
+            // Restore original layer
+            LayerHelper.SetLayerRecursive(transform, _originalLayer);
+
+            // Restore canvas properties
+            _canvas.renderMode = _originalRenderMode;
+            _canvas.worldCamera = _originalWorldCamera;
+            _canvas.planeDistance = _originalPlaneDistance;
+
+            _isPatched = false;
+
+            Debug.Log($"CanvasRedirect: Restored canvas '{_canvas.name}' to its original state.");
         }
-
-        _isPatched = true;
-        
-        // TODO: if using alternative ui patching for overlays, have option to resize camera mode canvases.
-    }
-
-    private void UndoPatch()
-    {
-        // This is making the assumption that all children of the canvas were in the same layer,
-        // which isn't a very smart assumption. TODO: don't make an ass out of u and mption.
-        // I guess I'll need to store a reference to every child so I can reset them afterwards :(
-        LayerHelper.SetLayerRecursive(transform, _originalLayer);
-
-        _canvas.renderMode = _originalRenderMode;
-        _canvas.worldCamera = _originalWorldCamera;
-        _canvas.planeDistance = _originalPlaneDistance;
-        _isPatched = false;
     }
 }

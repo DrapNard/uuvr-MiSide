@@ -4,6 +4,12 @@ using BepInEx;
 using Uuvr.OpenVR;
 using BepInEx.Unity.IL2CPP;
 using Il2CppInterop.Runtime.Injection;
+using Uuvr.VrCamera;
+using Uuvr.VrUi.PatchModes;
+using Uuvr.VrUi;
+using HarmonyLib;
+using UnityEngine;
+using System;
 
 namespace Uuvr
 {
@@ -17,28 +23,43 @@ namespace Uuvr
         public static string ModFolderPath { get; private set; }
 
         public override void Load()
-        {
-            // Set the static instance of this plugin
+        { 
             _instance = this;
-
-            // Determine the plugin's folder path
             ModFolderPath = Path.GetDirectoryName(Assembly.GetAssembly(typeof(UuvrPlugin)).Location);
 
-            // Initialize configuration
             new ModConfiguration(Config);
-
-            // Register Il2Cpp types
-            RegisterIl2CppTypes();
-
-            // Create the core instance
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+            //RegisterIl2CppTypes();
             UuvrCore.Create();
         }
 
         private void RegisterIl2CppTypes()
         {
-            // Register all required Il2Cpp types
-            ClassInjector.RegisterTypeInIl2Cpp<OpenVrManager>();
+            Assembly openVrAssembly = Assembly.Load("Uuvr.OpenVR");
+            //RegisterMonoBehaviourType<OpenVrManager>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrCamera.VrCamera>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrCamera.VrCamera>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrCameraOffset>();
+            ClassInjector.RegisterTypeInIl2Cpp<CanvasRedirect>();
+            ClassInjector.RegisterTypeInIl2Cpp<UiOverlayRenderMode>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrUiCursor>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrUiManager>();
+            ClassInjector.RegisterTypeInIl2Cpp<FollowTarget>();
+            ClassInjector.RegisterTypeInIl2Cpp<UuvrInput>();
+            ClassInjector.RegisterTypeInIl2Cpp<UuvrPoseDriver>();
+            ClassInjector.RegisterTypeInIl2Cpp<UuvrBehaviour>();
+            ClassInjector.RegisterTypeInIl2Cpp<UuvrCoreWrapper>();
             ClassInjector.RegisterTypeInIl2Cpp<UuvrCore>();
+            ClassInjector.RegisterTypeInIl2Cpp<AdditionalCameraData>();
+            ClassInjector.RegisterTypeInIl2Cpp<ScreenMirrorPatchMode>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrCameraManager>();
+            ClassInjector.RegisterTypeInIl2Cpp<CanvasRedirectPatchMode>();
+        }
+
+        private void RegisterMonoBehaviourType<T>() where T : MonoBehaviour
+        {
+                ClassInjector.RegisterTypeInIl2Cpp<T>();
+            
         }
     }
 }

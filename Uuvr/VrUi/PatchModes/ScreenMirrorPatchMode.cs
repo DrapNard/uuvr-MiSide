@@ -1,126 +1,136 @@
 ﻿using System;
 using System.Collections;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-#if MODERN && MONO
-using Uuvr.VrCamera;
-#endif
-
-#if CPP
-using BepInEx.Unity.IL2CPP.Utils;
-#endif
-
-namespace Uuvr.VrUi.PatchModes;
-
-public class ScreenMirrorPatchMode : UuvrBehaviour, VrUiPatchMode
+namespace Uuvr.VrUi.PatchModes
 {
-#if CPP
-    public ScreenMirrorPatchMode(System.IntPtr pointer) : base(pointer)
+    /// <summary>
+    /// Handles screen mirroring for VR UI, projecting the UI onto a texture while managing rendering behavior.
+    /// </summary>
+    public class ScreenMirrorPatchMode : UuvrBehaviour, VrUiPatchMode
     {
-    }
-#endif
+        private CommandBuffer? _commandBuffer;
+        private Camera? _clearCamera;
+        private RenderTexture? _targetTexture;
+        private Coroutine? _endOfFrameCoroutine;
 
-    private CommandBuffer? _commandBuffer;
-    private Camera? _clearCamera;
-    private float _scale = 2f;
-    private RenderTexture _targetTexture;
-    private Coroutine _endOfFrameCoroutine;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        SetXrMirror(false);
-        _endOfFrameCoroutine = this.StartCoroutine(EndOfFrameCoroutine());
-    }
-
-    protected override void OnDisable()
-    {
-        base.OnDisable();
-        SetXrMirror(true);
-        StopCoroutine(_endOfFrameCoroutine);
-        Reset();
-    }
-
-    private void Awake()
-    {
-        Debug.Log("mirror mode Start");
-        // TODO: find a layer that's visible by the top camera.
-        // _quad.layer = LayerHelper.GetVrUiLayer();
-
-        // This camera is here only to clear the screen.
-        _clearCamera = gameObject.AddComponent<Camera>();
-        _clearCamera.stereoTargetEye = StereoTargetEyeMask.None;
-        _clearCamera.depth = -100;
-        _clearCamera.cullingMask = 0;
-        // TODO: not sure if this works in all games, check Dredge.
-        _clearCamera.clearFlags = CameraClearFlags.SolidColor;
-        _clearCamera.backgroundColor = Color.clear;
-        
-        // HDR seems to prevent a proper transparent clear (would some times become opaque with this enabled).
-        _clearCamera.allowHDR = false;
-        // This I'm not sure if it helps but since the HDR thing was a problem, might as well.
-        _clearCamera.allowMSAA = false;
-
-#if MODERN && MONO
-        var additionalData = AdditionalCameraData.Create(_clearCamera);
-        if (additionalData != null)
+        /// <summary>
+        /// Unity's OnEnable method. Sets up the screen mirroring process.
+        /// </summary>
+        protected override void OnEnable()
         {
-            additionalData.SetAllowXrRendering(false);
+            base.OnEnable();
+            SetXrMirror(false);
+            _endOfFrameCoroutine = StartCoroutine(EndOfFrameCoroutine());
         }
-#endif
-    }
 
-    public void SetUpTargetTexture(RenderTexture targetTexture)
-    {
-        _targetTexture = targetTexture;
-
-        if (!enabled) return;
-        _commandBuffer = CreateCommandBuffer();
-        _commandBuffer.name = "UUVR UI";
-        _commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, targetTexture);
-    }
-    
-    private static CommandBuffer CreateCommandBuffer()
-    {
-        var commandBufferType = typeof(CommandBuffer);
-        var constructor = commandBufferType.GetConstructor(Type.EmptyTypes);
-        return (CommandBuffer)constructor.Invoke(null);
-    }
-
-    private void Reset()
-    {
-        if (_commandBuffer == null) return;
-        _commandBuffer.Dispose();
-        _commandBuffer = null;
-    }
-
-    private void SetXrMirror(bool mirror)
-    {
-        var xrSettingsType =
-            Type.GetType("UnityEngine.XR.XRSettings, UnityEngine.XRModule") ??
-            Type.GetType("UnityEngine.XR.XRSettings, UnityEngine.VRModule") ??
-            Type.GetType("UnityEngine.VR.VRSettings, UnityEngine");
-        
-        // This method of projecting the UI onto a texture basically just copies what's currently on the flat screen.
-        // We don't want the game itself to show up there, only the UI. So we disable mirroring the VR view to the flat screen.
-        xrSettingsType.GetProperty("showDeviceView").SetValue(null, mirror, null);
-    }
-
-    private IEnumerator EndOfFrameCoroutine()
-    {
-        while (true)
+        /// <summary>
+        /// Unity's OnDisable method. Resets screen mirroring behavior.
+        /// </summary>
+        protected override void OnDisable()
         {
-            if (_targetTexture != null && (_commandBuffer == null || Screen.width != _targetTexture.width || Screen.height != _targetTexture.height))
+            base.OnDisable();
+            SetXrMirror(true);
+            if (_endOfFrameCoroutine != null)
             {
-                SetUpTargetTexture(_targetTexture);
+                StopCoroutine(_endOfFrameCoroutine);
             }
-            yield return new WaitForEndOfFrame();
+            Reset();
+        }
 
-            if (_commandBuffer != null && _targetTexture != null)
+        /// <summary>
+        /// Unity's Awake method. Initializes the clear camera and rendering settings.
+        /// </summary>
+        private void Awake()
+        {
+            Debug.Log("ScreenMirrorPatchMode: Initializing clear camera.");
+
+            // Initialize the clear camera
+            _clearCamera = gameObject.AddComponent<Camera>();
+            _clearCamera.stereoTargetEye = StereoTargetEyeMask.None;
+            _clearCamera.depth = -100;
+            _clearCamera.cullingMask = 0;
+            _clearCamera.clearFlags = CameraClearFlags.SolidColor;
+            _clearCamera.backgroundColor = Color.clear;
+
+            // Disable HDR and MSAA to prevent rendering issues
+            _clearCamera.allowHDR = false;
+            _clearCamera.allowMSAA = false;
+        }
+
+        /// <summary>
+        /// Sets up the target texture for rendering the UI.
+        /// </summary>
+        /// <param name="targetTexture">The target render texture.</param>
+        public void SetUpTargetTexture(RenderTexture targetTexture)
+        {
+            _targetTexture = targetTexture;
+
+            if (!enabled) return;
+
+            _commandBuffer = CreateCommandBuffer();
+            _commandBuffer.name = "UUVR UI";
+            _commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, targetTexture);
+        }
+
+        /// <summary>
+        /// Resets the command buffer and rendering state.
+        /// </summary>
+        private void Reset()
+        {
+            if (_commandBuffer != null)
             {
-                Graphics.ExecuteCommandBuffer(_commandBuffer);
+                _commandBuffer.Dispose();
+                _commandBuffer = null;
+            }
+        }
+
+        /// <summary>
+        /// Toggles XR mirroring for the screen.
+        /// </summary>
+        /// <param name="mirror">True to enable mirroring, false to disable.</param>
+        private void SetXrMirror(bool mirror)
+        {
+            var xrSettingsType =
+                Type.GetType("UnityEngine.XR.XRSettings, UnityEngine.XRModule") ??
+                Type.GetType("UnityEngine.VR.VRSettings, UnityEngine");
+
+            if (xrSettingsType == null) return;
+
+            var showDeviceViewProperty = xrSettingsType.GetProperty("showDeviceView");
+            showDeviceViewProperty?.SetValue(null, mirror);
+        }
+
+        /// <summary>
+        /// Creates a new command buffer for rendering operations.
+        /// </summary>
+        /// <returns>A new CommandBuffer instance.</returns>
+        private static CommandBuffer CreateCommandBuffer()
+        {
+            return new CommandBuffer();
+        }
+
+        /// <summary>
+        /// Coroutine executed at the end of each frame to manage rendering behavior.
+        /// </summary>
+        /// <returns>An IEnumerator for coroutine execution.</returns>
+        private IEnumerator EndOfFrameCoroutine()
+        {
+            while (true)
+            {
+                if (_targetTexture != null &&
+                    (_commandBuffer == null || Screen.width != _targetTexture.width || Screen.height != _targetTexture.height))
+                {
+                    SetUpTargetTexture(_targetTexture);
+                }
+
+                yield return new WaitForEndOfFrame();
+
+                if (_commandBuffer != null && _targetTexture != null)
+                {
+                    Graphics.ExecuteCommandBuffer(_commandBuffer);
+                }
             }
         }
     }

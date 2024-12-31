@@ -20,10 +20,10 @@
 			<Private>False</Private>
 		</Reference>
 		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\unity-libs\*.dll">
-			<Private>False</Private>
+			<Private>false</Private>
 		</Reference>
 		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\core\*.dll">
-			<Private>False</Private>
+			<Private>false</Private>
 		</Reference>
 
 		<!-- Include all assets -->
