@@ -5,7 +5,7 @@ WIP for the v0.91F of MiSide (to donwload in steam console)
 ` download_depot 2527500 2527501 8152220797438511588 `
 
 
-
+Discord : https://discord.gg/kJctHhgBZN
 
 
 
