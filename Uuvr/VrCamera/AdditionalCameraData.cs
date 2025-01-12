@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using Il2CppSystem;
+using System;
+using Il2CppSystem.Reflection;
 using UnityEngine;
 
 namespace Uuvr.VrCamera
@@ -10,15 +10,17 @@ namespace Uuvr.VrCamera
     /// </summary>
     public class AdditionalCameraData : MonoBehaviour
     {
+        public AdditionalCameraData(System.IntPtr pointer) : base(pointer) { }
+
         private const int RenderTypeBase = 0;
         private const int RenderTypeOverlay = 1;
 
-        private static Type? _additionalCameraDataType;
+        private static Il2CppSystem.Type? _additionalCameraDataType;
         private static PropertyInfo? _renderTypeProperty;
         private static PropertyInfo? _cameraStackProperty;
         private static PropertyInfo? _allowXrRenderingProperty;
 
-        private object? _additionalCameraData;
+        private Il2CppSystem.Object? _additionalCameraData;
 
         /// <summary>
         /// Initializes the AdditionalCameraData for a camera.
@@ -30,10 +32,13 @@ namespace Uuvr.VrCamera
             // Lazy initialization of the AdditionalCameraData type and associated properties
             if (_additionalCameraDataType == null)
             {
-                _additionalCameraDataType = Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
-                _renderTypeProperty = _additionalCameraDataType?.GetProperty("renderType");
-                _cameraStackProperty = _additionalCameraDataType?.GetProperty("cameraStack");
-                _allowXrRenderingProperty = _additionalCameraDataType?.GetProperty("allowXRRendering");
+                _additionalCameraDataType = Il2CppSystem.Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
+                if (_additionalCameraDataType != null)
+                {
+                    _renderTypeProperty = _additionalCameraDataType.GetProperty("renderType");
+                    _cameraStackProperty = _additionalCameraDataType.GetProperty("cameraStack");
+                    _allowXrRenderingProperty = _additionalCameraDataType.GetProperty("allowXRRendering");
+                }
             }
 
             if (_additionalCameraDataType == null) return null;
@@ -73,18 +78,14 @@ namespace Uuvr.VrCamera
         /// Checks if the render type is set to "Overlay".
         /// </summary>
         /// <returns>True if the render type is "Overlay", otherwise false.</returns>
-        public bool IsOverlay()
-        {
-            return _renderTypeProperty != null && (int)_renderTypeProperty.GetValue(_additionalCameraData) == RenderTypeOverlay;
-        }
 
         /// <summary>
         /// Gets the camera stack associated with the Additional Camera Data.
         /// </summary>
         /// <returns>The list of cameras in the stack.</returns>
-        public List<Camera>? GetCameraStack()
+        public Il2CppSystem.Collections.Generic.List<Camera>? GetCameraStack()
         {
-            return _cameraStackProperty?.GetValue(_additionalCameraData) as List<Camera>;
+            return _cameraStackProperty?.GetValue(_additionalCameraData) as Il2CppSystem.Collections.Generic.List<Camera>;
         }
 
         /// <summary>

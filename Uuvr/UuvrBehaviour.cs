@@ -1,11 +1,25 @@
 ﻿using System;
 using BepInEx.Configuration;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Uuvr
 {
     public class UuvrBehaviour : MonoBehaviour
     {
+
+        private Action? _onBeforeRenderAction;
+        private Il2CppSystem.IntPtr pointer;
+
+        public UuvrBehaviour(Il2CppSystem.IntPtr pointer)
+        {
+            this.pointer = pointer;
+        }
+
+        public UuvrBehaviour(IntPtr pointer) : base(pointer)
+        {
+        }
+
         /// <summary>
         /// Factory method to create an instance of the behavior and attach it to a new GameObject.
         /// </summary>
@@ -31,6 +45,7 @@ namespace Uuvr
         protected virtual void Awake()
         {
             // Custom initialization logic for derived classes
+            _onBeforeRenderAction = OnBeforeRender;
             Debug.Log($"{GetType().Name}: Awake called.");
         }
 
@@ -42,7 +57,7 @@ namespace Uuvr
             try
             {
                 // Subscribe to the BeforeRender event
-                Application.onBeforeRender += OnBeforeRender;
+                Application.add_onBeforeRender(_onBeforeRenderAction);
             }
             catch (Exception exception)
             {
@@ -61,7 +76,7 @@ namespace Uuvr
             try
             {
                 // Unsubscribe from the BeforeRender event
-                Application.onBeforeRender -= OnBeforeRender;
+                Application.remove_onBeforeRender(_onBeforeRenderAction);
             }
             catch (Exception exception)
             {
@@ -125,5 +140,9 @@ namespace Uuvr
                 Debug.LogWarning($"{GetType().Name}: OnSettingChanged - Config entry is null or missing.");
             }
         }
+
+        protected virtual void OnBeginFrameRendering() { }
+
+        protected virtual void OnEndFrameRendering() { }
     }
 }

@@ -19,8 +19,13 @@
 		<Reference Include="..\lib\$(UnityBackend)\$(UnityGeneration)\*.dll">
 			<Private>False</Private>
 		</Reference>
-		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\unity-libs\*.dll">
-			<Private>false</Private>
+		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\unity-libs\UnityEngine.XRModule.dll">
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\unity-libs\UnityEngine.VRModule.dll">
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="..\lib\UnityVRLib\*.dll">
 		</Reference>
 		<Reference Include="$(RaiPalDir)\installed-mods\$(GameID)\BepInEx\core\*.dll">
 			<Private>false</Private>

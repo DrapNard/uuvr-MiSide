@@ -10,6 +10,10 @@ namespace Uuvr
         private MethodInfo? _trackingRotationMethod;
         private readonly object[] _trackingRotationMethodArgs = { 2 }; // Enum value for XRNode.CenterEye
 
+        public UuvrPoseDriver(IntPtr pointer) : base(pointer)
+        {
+        }
+
         /// <summary>
         /// Unity's Awake method. Initializes tracking methods and disables auto camera tracking.
         /// </summary>

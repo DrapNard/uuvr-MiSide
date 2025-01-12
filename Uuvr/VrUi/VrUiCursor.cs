@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEngine;
 
 namespace Uuvr.VrUi
@@ -10,6 +11,10 @@ namespace Uuvr.VrUi
     {
         private Texture2D? _texture;
         private readonly Vector2 _offset = new(22, 2);
+
+        public VrUiCursor(IntPtr pointer) : base(pointer)
+        {
+        }
 
         /// <summary>
         /// Unity's Start method. Initializes the custom cursor texture.

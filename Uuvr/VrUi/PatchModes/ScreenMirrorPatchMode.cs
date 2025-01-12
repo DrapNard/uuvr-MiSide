@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -15,6 +16,10 @@ namespace Uuvr.VrUi.PatchModes
         private RenderTexture? _targetTexture;
         private Coroutine? _endOfFrameCoroutine;
 
+        public ScreenMirrorPatchMode(IntPtr pointer) : base(pointer)
+        {
+        }
+
         /// <summary>
         /// Unity's OnEnable method. Sets up the screen mirroring process.
         /// </summary>
@@ -22,7 +27,7 @@ namespace Uuvr.VrUi.PatchModes
         {
             base.OnEnable();
             SetXrMirror(false);
-            _endOfFrameCoroutine = StartCoroutine(EndOfFrameCoroutine());
+            _endOfFrameCoroutine = this.StartCoroutine(EndOfFrameCoroutine());
         }
 
         /// <summary>

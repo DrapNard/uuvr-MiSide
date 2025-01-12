@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Uuvr.VrUi.PatchModes;
@@ -17,6 +18,10 @@ namespace Uuvr.VrUi
         private ScreenMirrorPatchMode? _screenMirrorPatchMode;
         private FollowTarget? _worldRenderModeFollowTarget;
         private UiOverlayRenderMode? _uiOverlayRenderMode;
+
+        public VrUiManager(IntPtr pointer) : base(pointer)
+        {
+        }
 
         /// <summary>
         /// Unity's Start method. Sets up the UI and applies initial settings.
@@ -84,7 +89,7 @@ namespace Uuvr.VrUi
 
             // Create quad for UI
             _vrUiQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            Destroy(_vrUiQuad.GetComponent<Collider>()); // Remove unnecessary collider
+            Destroy(_vrUiQuad.GetComponent("Collider")); // Remove unnecessary collider
             _vrUiQuad.name = "VrUiQuad";
             _vrUiQuad.transform.parent = _uiContainer.transform;
             _vrUiQuad.transform.localPosition = Vector3.forward * 2f;

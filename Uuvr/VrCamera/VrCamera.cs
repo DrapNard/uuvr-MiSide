@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Uuvr.VrCamera
@@ -22,6 +23,10 @@ namespace Uuvr.VrCamera
         private Camera? _childCamera;
         private UuvrPoseDriver? _childCameraPoseDriver;
         private LineRenderer? _forwardLine;
+
+        public VrCamera(IntPtr pointer) : base(pointer)
+        {
+        }
 
         protected override void Awake()
         {

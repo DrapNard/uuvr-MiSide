@@ -1,24 +1,40 @@
-﻿#if MODERN && MONO
+﻿using System;
 using UnityEngine;
 using UnityEngine.XR.Management;
 using UnityEngine.XR.OpenXR;
 
-namespace Uuvr.VrTogglers;
-
-// This is for Unity versions that let you add VR support via "XR Plugins".
-// Has the advantage of not requiring modifying any files like globalGameManagers.
-// This does require adding some needed files (native plugins and other stuff), which is handled by Uuvr.Patcher.
-// There is a separate project in Uuvr.XR.OpenXR that's just a copy of the code from that plugin.
-// I haven't been able to get this working in IL2CPP games since usually too much stuff gets stripped,
-// so this is currently limited to Mono.
-// Should work on Mono Unity versions 2018.4 and later.
-public class XrPluginOpenXrToggler: XrPluginToggler
+namespace Uuvr.VrTogglers
 {
-    protected override XRLoader CreateLoader()
+    /// <summary>
+    /// This class configures and toggles OpenXR support in Unity using XR Plugins.
+    /// </summary>
+    public class XrPluginOpenXrToggler : XrPluginToggler
     {
-        var xrLoader = ScriptableObject.CreateInstance<OpenXRLoader>();
-        OpenXRSettings.Instance.renderMode = OpenXRSettings.RenderMode.MultiPass;
-        return xrLoader;
+        protected override XRLoader CreateLoader()
+        {
+            try
+            {
+                // Create and initialize OpenXR Loader
+                var xrLoader = ScriptableObject.CreateInstance<OpenXRLoader>();
+
+                var openXRSettings = OpenXRSettings.Instance;
+                if (openXRSettings == null)
+                {
+                    throw new Exception("Failed to retrieve OpenXRSettings instance.");
+                }
+
+                // Configure OpenXRSettings (adjust based on your plugin version)
+                openXRSettings.renderMode = OpenXRSettings.RenderMode.MultiPass;
+
+                Debug.Log("Successfully created and configured OpenXRLoader.");
+
+                return xrLoader;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error in CreateLoader: {ex.Message}");
+                throw;
+            }
+        }
     }
 }
-#endif

@@ -9,27 +9,35 @@ namespace Uuvr
 {
     public class UuvrCore : MonoBehaviour
     {
+        public UuvrCore(IntPtr pointer) : base(pointer) { } // Required for IL2CPP compatibility
+
         private readonly KeyboardKey _toggleVrKey = new(KeyboardKey.KeyCode.F3);
         private float _originalFixedDeltaTime;
         private VrTogglerManager? _vrTogglerManager;
         private PropertyInfo? _refreshRateProperty;
 
-        public static void Create()
+        // Static initialization of UuvrCore
+        public static void Initialize()
         {
+            // Ensure the type is registered with IL2CPP
+            ClassInjector.RegisterTypeInIl2Cpp<UuvrCore>();
+            ClassInjector.RegisterTypeInIl2Cpp<VrCameraManager>();
+
+            // Create the core GameObject and attach the component
             var coreGameObject = new GameObject("UUVR");
-            ClassInjector.RegisterTypeInIl2Cpp<UuvrCore>(); // Ensure type is registered
             coreGameObject.AddComponent<UuvrCore>();
-            UnityEngine.Object.DontDestroyOnLoad(coreGameObject);
-            //Debug.Log("UuvrCore instance created.");
+            DontDestroyOnLoad(coreGameObject);
+
+            Debug.Log("UuvrCore initialized.");
         }
 
         private void Awake()
         {
-            DontDestroyOnLoad(gameObject);
-            gameObject.AddComponent<VrCameraManager>();
+            DontDestroyOnLoad(gameObject); // Make sure the object persists across scenes
+            gameObject.AddComponent<VrCameraManager>(); // Attach dependent manager
         }
 
-        public void Start()
+        private void Start()
         {
             try
             {
@@ -48,7 +56,7 @@ namespace Uuvr
             }
         }
 
-        public void Update()
+        private void Update()
         {
             try
             {
@@ -56,7 +64,6 @@ namespace Uuvr
                 if (_toggleVrKey.UpdateIsDown())
                 {
                     _vrTogglerManager?.ToggleVr();
-                    //Debug.Log("Toggled VR mode.");
                 }
 
                 // Update the physics rate based on the headset refresh rate
@@ -64,20 +71,20 @@ namespace Uuvr
             }
             catch (Exception ex)
             {
-                //Debug.LogError($"Error during UuvrCore.Update(): {ex.Message}");
+                Debug.Log($"Error during UuvrCore.Update(): {ex.Message}");
             }
         }
 
-        public void OnDestroy()
+        private void OnDestroy()
         {
             try
             {
-                //Debug.Log("UUVR instance destroyed. Recreating...");
-                Create();
+                Debug.Log("UUVR instance destroyed. Recreating...");
+                Initialize();
             }
             catch (Exception ex)
             {
-                //Debug.LogError($"Error during UuvrCore.OnDestroy(): {ex.Message}");
+                Debug.LogError($"Error during UuvrCore.OnDestroy(): {ex.Message}");
             }
         }
 
@@ -106,7 +113,7 @@ namespace Uuvr
             }
             catch (Exception ex)
             {
-                //Debug.LogError($"Error during UpdatePhysicsRate(): {ex.Message}");
+                Debug.LogError($"Error during UpdatePhysicsRate(): {ex.Message}");
             }
         }
     }

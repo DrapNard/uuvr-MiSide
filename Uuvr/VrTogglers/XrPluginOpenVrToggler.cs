@@ -1,34 +1,37 @@
-﻿#if MODERN && MONO
-using System;
-using Unity.XR.OpenVR;
+﻿using System;
 using UnityEngine;
+using UnityEngine.XR.OpenXR;
 using UnityEngine.XR.Management;
 
-namespace Uuvr.VrTogglers;
-
-// This is for Unity versions that let you add VR support via "XR Plugins".
-// Has the advantage of not requiring modifying any files like globalGameManagers.
-// This does require adding some needed files (native plugins and other stuff), which is handled by Uuvr.Patcher.
-// There is a separate project in Uuvr.XR.OpenVR that's just a copy of the code from that plugin.
-// I haven't been able to get this working in IL2CPP games since usually too much stuff gets stripped,
-// so this is currently limited to Mono.
-// Should work on Mono Unity versions 2018.4 and later.
-public class XrPluginOpenVrToggler: XrPluginToggler
+namespace Uuvr.VrTogglers
 {
-    protected override XRLoader CreateLoader()
+    public class XrPluginOpenVrToggler : XrPluginToggler
     {
-        var xrLoader = ScriptableObject.CreateInstance<OpenVRLoader>();
+        protected override XRLoader CreateLoader()
+        {
+            try
+            {
+                // Create and initialize OpenXR Loader
+                var xrLoader = ScriptableObject.CreateInstance<OpenXRLoader>();
+                xrLoader.Initialize();
 
-        xrLoader.Initialize();
+                var openXRSettings = OpenXRSettings.Instance;
+                if (openXRSettings == null)
+                {
+                    throw new Exception("Failed to retrieve OpenXRSettings instance.");
+                }
 
-        var openVrSettings = OpenVRSettings.GetSettings();
-        if (openVrSettings == null) throw new Exception("OpenVRSettings instance is null");
-        openVrSettings.EditorAppKey = "uuvr";
-        openVrSettings.InitializationType = OpenVRSettings.InitializationTypes.Scene;
-        openVrSettings.StereoRenderingMode = OpenVRSettings.StereoRenderingModes.MultiPass;
-        openVrSettings.SetMirrorViewMode(OpenVRSettings.MirrorViewModes.Right);
+                // Configure OpenXRSettings if necessary
+                Debug.Log("OpenXRSettings successfully retrieved.");
 
-        return xrLoader;
+                return xrLoader;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error in CreateLoader: {ex.Message}");
+                throw;
+            }
+        }
+
     }
 }
-#endif

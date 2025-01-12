@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +18,10 @@ namespace Uuvr.VrUi.PatchModes
         };
 
         private Camera? _uiCaptureCamera;
+
+        public CanvasRedirectPatchMode(IntPtr pointer) : base(pointer)
+        {
+        }
 
         /// <summary>
         /// Called when a configuration setting changes. Updates the culling mask for the capture camera.

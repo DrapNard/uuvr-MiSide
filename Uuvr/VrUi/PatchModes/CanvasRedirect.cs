@@ -16,6 +16,10 @@ namespace Uuvr.VrUi.PatchModes
         private float _originalPlaneDistance;
         private int _originalLayer;
 
+        public CanvasRedirect(IntPtr pointer) : base(pointer)
+        {
+        }
+
         /// <summary>
         /// Creates a new CanvasRedirect instance and attaches it to the specified canvas.
         /// </summary>

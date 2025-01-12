@@ -6,6 +6,10 @@ namespace Uuvr
 {
     public class UuvrInput : UuvrBehaviour
     {
+        public UuvrInput(IntPtr pointer) : base(pointer)
+        {
+        }
+
         private enum XboxButton
         {
             DpadUp = 0x0001,

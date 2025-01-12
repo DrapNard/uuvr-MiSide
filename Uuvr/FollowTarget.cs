@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Uuvr
 {
@@ -7,6 +8,10 @@ namespace Uuvr
         public Transform? Target; // The transform to follow
         public Vector3 LocalPosition = Vector3.zero; // Local position offset
         public Quaternion LocalRotation = Quaternion.identity; // Local rotation offset
+
+        public FollowTarget(IntPtr pointer) : base(pointer)
+        {
+        }
 
         /// <summary>
         /// Updates the position and rotation of the object to follow the target.

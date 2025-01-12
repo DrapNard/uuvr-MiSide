@@ -1,52 +1,54 @@
-﻿#if MODERN && MONO
-using System;
-using Unity.XR.OpenVR;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR.Management;
 
-namespace Uuvr.VrTogglers;
-
-public abstract class XrPluginToggler: VrToggler
+namespace Uuvr.VrTogglers
 {
-    protected XRGeneralSettings _generalSettings;
-    protected XRManagerSettings _managerSetings;
-    
-    protected override bool SetUp()
+    public abstract class XrPluginToggler : VrToggler
     {
-        _generalSettings = ScriptableObject.CreateInstance<XRGeneralSettings>();
-        _managerSetings = ScriptableObject.CreateInstance<XRManagerSettings>();
-        _generalSettings.Manager = _managerSetings;
-        
-        #pragma warning disable CS0618
-        /*
-         * ManagerSettings.loaders is deprecated but very useful, allows me to add the xr loader without reflection.
-         * Should be fine unless the game's Unity version gets majorly updated, in which case the whole mod will be
-         * broken, so I'll have to update it anyway.
-         */
-        _managerSetings.loaders.Add(CreateLoader());
-        #pragma warning restore CS0618
-        
-        _managerSetings.InitializeLoaderSync();
-        if (_managerSetings.activeLoader == null) throw new Exception("Cannot initialize OpenXR Loader. Maybe The VR headset wasn't ready?");
+        protected XRGeneralSettings _generalSettings;
+        protected XRManagerSettings _managerSettings;
 
-        return true;
+        protected override bool SetUp()
+        {
+            // Initialize XR General Settings and Manager Settings
+            _generalSettings = ScriptableObject.CreateInstance<XRGeneralSettings>();
+            _managerSettings = ScriptableObject.CreateInstance<XRManagerSettings>();
+            _generalSettings.Manager = _managerSettings;
+
+#pragma warning disable CS0618
+            // Add XR loader to the manager settings
+            _managerSettings.loaders.Add(CreateLoader());
+#pragma warning restore CS0618
+
+            // Initialize the XR loader
+            _managerSettings.InitializeLoaderSync();
+
+            if (_managerSettings.activeLoader == null)
+            {
+                Debug.LogError("Failed to initialize XR Loader. Ensure VR headset is connected.");
+                return false;
+            }
+
+            return true;
+        }
+
+        protected override bool EnableVr()
+        {
+            // Start the XR subsystems and initialize/start the loader
+            _managerSettings.StartSubsystems();
+            var initSuccess = _managerSettings.activeLoader.Initialize();
+            var startSuccess = _managerSettings.activeLoader.Start();
+            return initSuccess && startSuccess;
+        }
+
+        protected override bool DisableVr()
+        {
+            // Stop and deinitialize XR loader
+            var stopSuccess = _managerSettings.activeLoader.Stop();
+            var deinitSuccess = _managerSettings.activeLoader.Deinitialize();
+            return stopSuccess && deinitSuccess;
+        }
+
+        protected abstract XRLoader CreateLoader();
     }
-
-    protected override bool EnableVr()
-    {
-        _managerSetings.StartSubsystems();
-        var initializationSuccess = _managerSetings.activeLoader.Initialize();
-        var startSuccess = _managerSetings.activeLoader.Start();
-        return initializationSuccess && startSuccess;
-    }
-
-    protected override bool DisableVr()
-    {
-        var stopSuccess = _managerSetings.activeLoader.Stop();
-        var deinitializationSuccess = _managerSetings.activeLoader.Deinitialize();
-        return stopSuccess && deinitializationSuccess;
-    }
-
-    protected abstract XRLoader CreateLoader();
 }
-#endif

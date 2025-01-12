@@ -1,23 +1,40 @@
-﻿using UnityEngine;
+﻿using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem;
+using UnityEngine;
 
 namespace Uuvr.VrCamera
 {
-    public class VrCameraManager : MonoBehaviour
+    public class VrCameraManager : UuvrBehaviour
     {
+        private Camera[] _managedCameras;
+
+        public VrCameraManager(System.IntPtr pointer) : base(pointer)
+        {
+        }
+
         private void Update()
         {
             try
             {
-                // Use FindObjectsOfType to get all active cameras
-                var allCameras = Object.FindObjectsOfType<Camera>();
-
-                // Iterate through the cameras and process them
-                foreach (var camera in allCameras)
+                // Ensure the array matches the current number of active cameras
+                if (_managedCameras == null || _managedCameras.Length < Camera.allCamerasCount)
                 {
-                    if (camera == null || camera.targetTexture != null || camera.stereoTargetEye == StereoTargetEyeMask.None) continue;
-                    if (VrCamera.VrCameras.Contains(camera) || VrCamera.IgnoredCameras.Contains(camera)) continue;
+                    _managedCameras = new Camera[Camera.allCamerasCount];
+                }
 
-                    // Add VrCamera component to unprocessed cameras
+                // Populate the array with active cameras
+                int cameraCount = Camera.GetAllCameras(_managedCameras);
+
+                for (int index = 0; index < cameraCount; index++)
+                {
+                    var camera = _managedCameras[index];
+
+                    if (camera == null || camera.targetTexture != null || camera.stereoTargetEye == StereoTargetEyeMask.None)
+                        continue;
+
+                    if (VrCamera.VrCameras.Contains(camera) || VrCamera.IgnoredCameras.Contains(camera))
+                        continue;
+
                     Debug.Log($"Creating VR camera: {camera.name}");
                     camera.gameObject.AddComponent<VrCamera>();
                 }

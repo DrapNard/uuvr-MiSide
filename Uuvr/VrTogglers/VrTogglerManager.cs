@@ -1,50 +1,51 @@
 ﻿using System;
-using BepInEx.Configuration;
+using UnityEngine;
+using System.Diagnostics;
 
-namespace Uuvr.VrTogglers;
-
-public class VrTogglerManager
+namespace Uuvr.VrTogglers
 {
-    private VrToggler _toggler;
-    
-    public VrTogglerManager()
+    public class VrTogglerManager
     {
-        SetUpToggler();
-    }
+        private VrToggler _toggler;
 
-    private void SetUpToggler()
-    {
-        if (_toggler != null)
+        public VrTogglerManager()
         {
-            _toggler.SetVrEnabled(false);
+            SetUpToggler();
         }
-        
-#if MODERN && MONO
-        // TODO: should never pick OpenXR on x86, since it no worky.
-        switch(ModConfiguration.Instance.PreferredVrApi.Value)
-        {
-            case ModConfiguration.VrApi.OpenVr:
-            {
-                _toggler = new XrPluginOpenVrToggler();
-                return;
-            }
-            case ModConfiguration.VrApi.OpenXr:
-            {
-                _toggler = new XrPluginOpenXrToggler();
-                return;
-            }
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-#elif LEGACY && MONO
-        _toggler = new NativeOpenVrToggler();
-#else
-        _toggler = new ManualOpenVrToggler();
-#endif
-    }
 
-    public void ToggleVr()
-    {
-        _toggler.SetVrEnabled(!_toggler.IsVrEnabled);
+        private void SetUpToggler()
+        {
+            // Ensure any previously set toggler is disabled
+            _toggler?.SetVrEnabled(false);
+
+            // Configure VR toggler based on the preferred VR API
+            switch (ModConfiguration.Instance.PreferredVrApi.Value)
+            {
+                case ModConfiguration.VrApi.OpenVr:
+                    _toggler = new XrPluginOpenVrToggler();
+                    UnityEngine.Debug.Log("UUVR: OpenVR");
+                    break;
+
+                case ModConfiguration.VrApi.OpenXr:
+                    _toggler = new XrPluginOpenXrToggler();
+                    UnityEngine.Debug.Log("UUVR: OpenXR");
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ModConfiguration.Instance.PreferredVrApi),
+                        ModConfiguration.Instance.PreferredVrApi.Value, "Invalid VR API configuration.");
+            }
+        }
+
+        public void ToggleVr()
+        {
+            if (_toggler == null)
+            {
+                throw new InvalidOperationException("VR toggler is not initialized.");
+            }
+
+            // Toggle VR state
+            _toggler.SetVrEnabled(!_toggler.IsVrEnabled);
+        }
     }
 }

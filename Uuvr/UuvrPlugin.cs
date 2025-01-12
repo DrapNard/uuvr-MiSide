@@ -8,8 +8,6 @@ using Uuvr.VrCamera;
 using Uuvr.VrUi.PatchModes;
 using Uuvr.VrUi;
 using HarmonyLib;
-using UnityEngine;
-using System;
 
 namespace Uuvr
 {
@@ -26,12 +24,11 @@ namespace Uuvr
         { 
             _instance = this;
             ModFolderPath = Path.GetDirectoryName(Assembly.GetAssembly(typeof(UuvrPlugin)).Location);
-
             new ModConfiguration(Config);
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Assembly openVrAssembly = Assembly.Load("Uuvr.OpenVR");
+
             ClassInjector.RegisterTypeInIl2Cpp<OpenVrManager>();
-            ClassInjector.RegisterTypeInIl2Cpp<VrCamera.VrCamera>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCamera.VrCamera>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCameraOffset>();
             ClassInjector.RegisterTypeInIl2Cpp<CanvasRedirect>();
@@ -46,7 +43,7 @@ namespace Uuvr
             ClassInjector.RegisterTypeInIl2Cpp<ScreenMirrorPatchMode>();
             ClassInjector.RegisterTypeInIl2Cpp<VrCameraManager>();
             ClassInjector.RegisterTypeInIl2Cpp<CanvasRedirectPatchMode>();
-            UuvrCore.Create();
+            UuvrCore.Initialize();
         }
     }
 }

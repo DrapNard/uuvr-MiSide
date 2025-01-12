@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Uuvr.VrCamera
 {
@@ -7,6 +8,10 @@ namespace Uuvr.VrCamera
     /// </summary>
     public class VrCameraOffset : UuvrBehaviour
     {
+        public VrCameraOffset(IntPtr pointer) : base(pointer)
+        {
+        }
+
         /// <summary>
         /// Called before rendering the frame. Ensures the transform is updated.
         /// </summary>

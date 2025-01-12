@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Uuvr.VrUi
 {
@@ -9,6 +10,10 @@ namespace Uuvr.VrUi
     {
         // Overlay camera that sees the UI quad where the captured UI is projected.
         private Camera? _uiSceneCamera;
+
+        public UiOverlayRenderMode(IntPtr pointer) : base(pointer)
+        {
+        }
 
         /// <summary>
         /// Called when a configuration setting changes. Updates the culling mask for the overlay camera.
