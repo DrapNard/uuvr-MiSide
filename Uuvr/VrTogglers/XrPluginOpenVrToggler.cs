@@ -18,6 +18,7 @@ namespace Uuvr.VrTogglers
                 var openXRSettings = OpenXRSettings.Instance;
                 if (openXRSettings == null)
                 {
+                    Debug.LogError("Failed to retrieve OpenXRSettings instance.");
                     throw new Exception("Failed to retrieve OpenXRSettings instance.");
                 }
 

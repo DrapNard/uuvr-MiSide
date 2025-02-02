@@ -1,38 +1,36 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.XR.Management;
+﻿using UnityEngine;
 using UnityEngine.XR.OpenXR;
+using UnityEngine.XR.Management;
+using System;
 
 namespace Uuvr.VrTogglers
 {
-    /// <summary>
-    /// This class configures and toggles OpenXR support in Unity using XR Plugins.
-    /// </summary>
     public class XrPluginOpenXrToggler : XrPluginToggler
     {
         protected override XRLoader CreateLoader()
         {
             try
             {
-                // Create and initialize OpenXR Loader
-                var xrLoader = ScriptableObject.CreateInstance<OpenXRLoader>();
-
-                var openXRSettings = OpenXRSettings.Instance;
-                if (openXRSettings == null)
+                var loaderType = Type.GetType("UnityEngine.XR.OpenXR.OpenXRLoader, Unity.XR.OpenXR");
+                if (loaderType == null)
                 {
-                    throw new Exception("Failed to retrieve OpenXRSettings instance.");
+                    Debug.LogError("Failed to get OpenXRLoader type.");
+                    throw new Exception("OpenXRLoader creation failed.");
                 }
 
-                // Configure OpenXRSettings (adjust based on your plugin version)
-                openXRSettings.renderMode = OpenXRSettings.RenderMode.MultiPass;
+                var xrLoader = Activator.CreateInstance(loaderType) as XRLoader;
+                if (xrLoader == null)
+                {
+                    Debug.LogError("Failed to create OpenXRLoader instance.");
+                    throw new Exception("OpenXRLoader creation failed.");
+                }
 
-                Debug.Log("Successfully created and configured OpenXRLoader.");
-
+                Debug.Log("Successfully created OpenXRLoader.");
                 return xrLoader;
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                Debug.LogError($"Error in CreateLoader: {ex.Message}");
+                Debug.LogError($"Error creating XRLoader: {ex.Message}");
                 throw;
             }
         }

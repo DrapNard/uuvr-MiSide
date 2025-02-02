@@ -45,7 +45,14 @@ namespace Uuvr.VrTogglers
             }
 
             // Toggle VR state
-            _toggler.SetVrEnabled(!_toggler.IsVrEnabled);
+            try
+            {
+                _toggler.SetVrEnabled(!_toggler.IsVrEnabled);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(ex.ToString());
+            }
         }
     }
 }

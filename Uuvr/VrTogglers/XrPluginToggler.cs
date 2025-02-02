@@ -1,52 +1,78 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Reflection;
+using UnityEngine;
 using UnityEngine.XR.Management;
 
 namespace Uuvr.VrTogglers
 {
     public abstract class XrPluginToggler : VrToggler
     {
-        protected XRGeneralSettings _generalSettings;
-        protected XRManagerSettings _managerSettings;
+        private XRManagerSettings _managerSettings;
+        private object _generalSettings;
 
         protected override bool SetUp()
         {
-            // Initialize XR General Settings and Manager Settings
-            _generalSettings = ScriptableObject.CreateInstance<XRGeneralSettings>();
-            _managerSettings = ScriptableObject.CreateInstance<XRManagerSettings>();
-            _generalSettings.Manager = _managerSettings;
+            try
+            {
+                // Attempt to retrieve the XRGeneralSettings instance directly
+                _generalSettings = XRGeneralSettings.Instance as XRGeneralSettings;
+
+                if (_generalSettings == null)
+                {
+                    // Reflection fallback if the direct access fails
+                    var generalSettingsType = typeof(XRGeneralSettings);
+                    var instanceProperty = generalSettingsType.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    _generalSettings = instanceProperty?.GetValue(null) as XRGeneralSettings;
+
+                    if (_generalSettings == null)
+                    {
+                        Debug.LogError("XRGeneralSettings.Instance is null or could not be accessed.");
+                        return false;
+                    }
+                }
 
 #pragma warning disable CS0618
-            // Add XR loader to the manager settings
-            _managerSettings.loaders.Add(CreateLoader());
+                _managerSettings.loaders.Add(CreateLoader());
 #pragma warning restore CS0618
 
-            // Initialize the XR loader
-            _managerSettings.InitializeLoaderSync();
+                _managerSettings.InitializeLoaderSync();
 
-            if (_managerSettings.activeLoader == null)
+                if (_managerSettings.activeLoader == null)
+                {
+                    Debug.LogError("Failed to initialize XR Loader.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
             {
-                Debug.LogError("Failed to initialize XR Loader. Ensure VR headset is connected.");
+                Debug.LogError($"Error during XR setup: {ex.Message}");
                 return false;
             }
-
-            return true;
         }
 
         protected override bool EnableVr()
         {
-            // Start the XR subsystems and initialize/start the loader
+            if (_managerSettings == null || _managerSettings.activeLoader == null)
+            {
+                Debug.LogError("Cannot enable VR. Manager or Loader is null.");
+                return false;
+            }
+
             _managerSettings.StartSubsystems();
-            var initSuccess = _managerSettings.activeLoader.Initialize();
-            var startSuccess = _managerSettings.activeLoader.Start();
-            return initSuccess && startSuccess;
+            return _managerSettings.activeLoader.Initialize() && _managerSettings.activeLoader.Start();
         }
 
         protected override bool DisableVr()
         {
-            // Stop and deinitialize XR loader
-            var stopSuccess = _managerSettings.activeLoader.Stop();
-            var deinitSuccess = _managerSettings.activeLoader.Deinitialize();
-            return stopSuccess && deinitSuccess;
+            if (_managerSettings == null || _managerSettings.activeLoader == null)
+            {
+                Debug.LogError("Cannot disable VR. Manager or Loader is null.");
+                return false;
+            }
+
+            return _managerSettings.activeLoader.Stop() && _managerSettings.activeLoader.Deinitialize();
         }
 
         protected abstract XRLoader CreateLoader();
